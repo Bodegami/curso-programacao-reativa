@@ -5,4 +5,4 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://admin:<password>@cluster0.kvymc5i.mongodb.net/webflux-course?retryWrites=true&w=majority
+      uri: mongodb+srv://${MONGO_DB_USER:admin}:${MONGO_DB_PASSWORD:admin}@cluster0.kvymc5i.mongodb.net/${MONGO_DB_NAME:webflux-course}?retryWrites=true&w=majority
