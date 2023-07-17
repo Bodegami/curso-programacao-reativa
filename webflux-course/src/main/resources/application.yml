@@ -3,6 +3,10 @@ server:
   port: 8082
 
 spring:
+  application:
+    name: webflux-course
   data:
     mongodb:
       uri: mongodb+srv://${MONGO_DB_USER:admin}:${MONGO_DB_PASSWORD:admin}@cluster0.kvymc5i.mongodb.net/${MONGO_DB_NAME:webflux-course}?retryWrites=true&w=majority
+      auto-index-creation: true
+
