@@ -31,8 +31,16 @@ public class UserService {
                 ));
     }
 
-
     public Flux<User> findAll() {
         return repository.findAll();
+    }
+
+    public Mono<User> update(final String id, final UserRequest request) {
+        return repository.findById(id)
+                .map(entity -> mapper.toEntity(request, entity))
+                .flatMap(repository::save)
+                .switchIfEmpty(Mono.error(new ObjectNotFoundException(
+                        String.format("Object not found. ID: %s - Type: %s", id, User.class.getSimpleName()))
+                ));
     }
 }

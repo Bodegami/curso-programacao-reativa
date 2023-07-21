@@ -20,7 +20,7 @@ public interface UserController {
     ResponseEntity<Flux<UserResponse>> findAll();
 
     @PatchMapping(value = "/{id}")
-    ResponseEntity<Mono<UserResponse>> update(@PathVariable String id, @RequestBody UserRequest request);
+    ResponseEntity<Mono<UserResponse>> update(@PathVariable String id, @Valid @RequestBody UserRequest request);
 
     @DeleteMapping(value = "/{id}")
     ResponseEntity<Mono<Void>> delete(@PathVariable String id);
