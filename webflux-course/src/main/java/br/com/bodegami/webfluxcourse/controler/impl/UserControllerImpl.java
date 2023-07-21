@@ -50,6 +50,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<Mono<Void>> delete(String id) {
-        return null;
+        Mono<UserResponse> response = service.delete(id).map(mapper::toResponse);
+        return ResponseEntity.ok(response.then());
     }
 }
