@@ -19,4 +19,7 @@ public class UserRepository {
     }
 
 
+    public Mono<User> findById(String id) {
+        return reactiveMongoTemplate.findById(id, User.class);
+    }
 }

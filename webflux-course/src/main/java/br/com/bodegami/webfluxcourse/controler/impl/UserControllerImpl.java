@@ -1,6 +1,7 @@
 package br.com.bodegami.webfluxcourse.controler.impl;
 
 import br.com.bodegami.webfluxcourse.controler.UserController;
+import br.com.bodegami.webfluxcourse.mapper.UserMapper;
 import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.model.response.UserResponse;
 import br.com.bodegami.webfluxcourse.service.UserService;
@@ -16,9 +17,11 @@ import reactor.core.publisher.Mono;
 public class UserControllerImpl implements UserController {
 
     private final UserService service;
+    private final UserMapper mapper;
 
-    public UserControllerImpl(UserService service) {
+    public UserControllerImpl(UserService service, UserMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @Override
@@ -28,8 +31,9 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public ResponseEntity<Mono<UserResponse>> find(String id) {
-        return null;
+    public ResponseEntity<Mono<UserResponse>> findById(String id) {
+        Mono<UserResponse> response = service.findById(id).map(mapper::toResponse);
+        return ResponseEntity.ok(response);
     }
 
     @Override
