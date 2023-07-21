@@ -1,5 +1,6 @@
 package br.com.bodegami.webfluxcourse.controler.exceptions;
 
+import br.com.bodegami.webfluxcourse.service.exception.ObjectNotFoundException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,22 @@ public class ControllerExceptionHandler {
         }
 
         return ResponseEntity.badRequest().body(Mono.just(error));
+    }
+
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<Mono<StandardError>> objectNotFoundException(
+            ObjectNotFoundException ex, ServerHttpRequest request) {
+
+        Mono<StandardError> response = Mono.just(StandardError.builder()
+                .timestamp(LocalDateTime.now())
+                .path(request.getPath().toString())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .build()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
 

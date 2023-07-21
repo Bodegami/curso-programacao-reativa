@@ -4,6 +4,7 @@ import br.com.bodegami.webfluxcourse.entity.User;
 import br.com.bodegami.webfluxcourse.mapper.UserMapper;
 import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.repository.UserRepository;
+import br.com.bodegami.webfluxcourse.service.exception.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +24,10 @@ public class UserService {
     }
 
     public Mono<User> findById(final String id) {
-        return repository.findById(id);
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new ObjectNotFoundException(
+                        String.format("Object not found. ID: %s - Type: %s", id, User.class.getSimpleName()))
+                ));
     }
 
 
