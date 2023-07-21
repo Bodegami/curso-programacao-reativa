@@ -38,7 +38,8 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<Flux<UserResponse>> findAll() {
-        return null;
+        Flux<UserResponse> response = service.findAll().map(mapper::toResponse);
+        return ResponseEntity.ok(response);
     }
 
     @Override

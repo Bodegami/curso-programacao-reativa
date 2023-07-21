@@ -6,6 +6,7 @@ import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.repository.UserRepository;
 import br.com.bodegami.webfluxcourse.service.exception.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -31,5 +32,7 @@ public class UserService {
     }
 
 
-
+    public Flux<User> findAll() {
+        return repository.findAll();
+    }
 }
