@@ -168,11 +168,32 @@ class UserControllerImplTest {
 
         verify(service, times(1)).findAll();
         verify(mapper, times(1)).toResponse(any(User.class));
-
     }
 
+    @DisplayName("Test update endpoint with success")
     @Test
     void update() {
+        name = "Renato F.";
+        String resourcePath = baseUri + "/" + id;
+        UserRequest request = new UserRequest(name, email, password);
+        UserResponse response = new UserResponse(id, name, email, password);
+
+        when(service.update(anyString(), any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(response);
+
+        webTestClient.patch().uri(resourcePath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(id)
+                .jsonPath("$.name").isEqualTo(name)
+                .jsonPath("$.email").isEqualTo(email)
+                .jsonPath("$.password").isEqualTo(password)
+                .consumeWith(System.out::println);
+        verify(service, times(1)).update(anyString(), any(UserRequest.class));
+        verify(mapper, times(1)).toResponse(User.builder().build());
     }
 
     @Test
