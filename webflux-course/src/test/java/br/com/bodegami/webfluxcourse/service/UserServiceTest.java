@@ -4,6 +4,8 @@ import br.com.bodegami.webfluxcourse.entity.User;
 import br.com.bodegami.webfluxcourse.mapper.UserMapper;
 import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.repository.UserRepository;
+import br.com.bodegami.webfluxcourse.service.exception.ObjectNotFoundException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -117,6 +119,19 @@ class UserServiceTest {
                 .verify();
 
         verify(repository, times(1)).findAndRemove(anyString());
+    }
 
+    @Test
+    void testHandleNotFound() {
+        String expectedId = "123";
+        when(repository.findById(anyString())).thenReturn(Mono.empty());
+
+        try {
+            service.findById(expectedId);
+        }
+        catch (Exception ex) {
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals(String.format("Object not found. ID: %s - Type: %s", expectedId, User.class), ex.getMessage());
+        }
     }
 }
