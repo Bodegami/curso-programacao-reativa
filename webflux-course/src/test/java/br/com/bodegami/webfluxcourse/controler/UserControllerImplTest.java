@@ -5,6 +5,7 @@ import br.com.bodegami.webfluxcourse.mapper.UserMapper;
 import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.model.response.UserResponse;
 import br.com.bodegami.webfluxcourse.service.UserService;
+import br.com.bodegami.webfluxcourse.service.exception.ObjectNotFoundException;
 import com.mongodb.reactivestreams.client.MongoClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -121,6 +122,29 @@ class UserControllerImplTest {
 
         verify(service, times(1)).findById(anyString());
         verify(mapper, times(1)).toResponse(any(User.class));
+    }
+
+    @DisplayName("Test find by id endpoint with not found")
+    @Test
+    void testFindByIdWithError() {
+        UserResponse response = new UserResponse(id, name, email, password);
+        String resourcePath = baseUri + "/" + id;
+
+        when(service.findById(anyString())).thenThrow(new ObjectNotFoundException(
+                String.format("Object not found. ID: %s - Type: %s", id, User.class.getSimpleName())));
+
+        webTestClient.get().uri(resourcePath)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.path").isEqualTo(resourcePath)
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.error").isEqualTo("Not Found")
+                .jsonPath("$.message").isEqualTo(
+                        String.format("Object not found. ID: %s - Type: %s", id, User.class.getSimpleName()));
+
+        verify(service, times(1)).findById(anyString());
     }
 
     @Test
