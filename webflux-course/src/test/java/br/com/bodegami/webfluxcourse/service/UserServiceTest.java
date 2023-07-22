@@ -18,6 +18,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +34,7 @@ class UserServiceTest {
     private UserService service;
 
     @Test
-    void save() {
+    void testSave() {
         UserRequest request = new UserRequest("Renato", "renato@email.com", "12345");
         User entity = User.builder().build();
 
@@ -48,5 +49,22 @@ class UserServiceTest {
                 .verify();
 
         verify(repository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void testFindById() {
+        User expectedUser = User.builder()
+                .id("123")
+                .build();
+        when(repository.findById(anyString())).thenReturn(Mono.just(expectedUser));
+
+        Mono<User> result = service.findById("123");
+
+        StepVerifier.create(result)
+                .expectNextMatches(user -> user.getClass() == User.class && user.getId().equals(expectedUser.getId()))
+                .expectComplete()
+                .verify();
+
+        verify(repository, times(1)).findById(anyString());
     }
 }
