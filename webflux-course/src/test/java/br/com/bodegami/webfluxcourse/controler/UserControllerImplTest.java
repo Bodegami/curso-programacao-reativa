@@ -50,6 +50,9 @@ class UserControllerImplTest {
     private String email;
     private String password;
     private String baseUri;
+    private String resourcePath;
+    private UserRequest request;
+    private UserResponse response;
 
     @BeforeEach
     void setup() {
@@ -58,14 +61,16 @@ class UserControllerImplTest {
         email = "renato@email.com";
         password = "123";
         baseUri = "/users";
+        resourcePath = baseUri + "/" + id;
+
+        request = new UserRequest(name, email, password);
+        response = new UserResponse(id, name, email, password);
     }
 
 
     @DisplayName("Test endpoint save with success")
     @Test
     void testSaveWithSuccess() {
-        UserRequest request = new UserRequest(name, email, password);
-
         when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
 
         webTestClient.post().uri(baseUri)
@@ -83,7 +88,7 @@ class UserControllerImplTest {
     @Test
     void testSaveWithBadRequest() {
         name = "   renato    ";
-        UserRequest request = new UserRequest(name, email, password);
+        request = new UserRequest(name, email, password);
 
         when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
 
@@ -106,12 +111,10 @@ class UserControllerImplTest {
     @DisplayName("Test find by id endpoint with success")
     @Test
     void testFindByIdWithSuccess() {
-        UserResponse response = new UserResponse(id, name, email, password);
-
         when(service.findById(anyString())).thenReturn(Mono.just(User.builder().build()));
         when(mapper.toResponse(any(User.class))).thenReturn(response);
 
-        webTestClient.get().uri(baseUri + "/" + id)
+        webTestClient.get().uri(resourcePath)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -128,9 +131,6 @@ class UserControllerImplTest {
     @DisplayName("Test find by id endpoint with not found")
     @Test
     void testFindByIdWithError() {
-        UserResponse response = new UserResponse(id, name, email, password);
-        String resourcePath = baseUri + "/" + id;
-
         when(service.findById(anyString())).thenThrow(new ObjectNotFoundException(
                 String.format("Object not found. ID: %s - Type: %s", id, User.class.getSimpleName())));
 
@@ -151,8 +151,6 @@ class UserControllerImplTest {
     @DisplayName("Test find all endpoint with success")
     @Test
     void testFindAllWithSuccess() {
-        UserResponse response = new UserResponse(id, name, email, password);
-
         when(service.findAll()).thenReturn(Flux.just(User.builder().build()));
         when(mapper.toResponse(any(User.class))).thenReturn(response);
 
@@ -172,9 +170,8 @@ class UserControllerImplTest {
 
     @DisplayName("Test update endpoint with success")
     @Test
-    void update() {
+    void testUpdateWithSuccess() {
         name = "Renato F.";
-        String resourcePath = baseUri + "/" + id;
         UserRequest request = new UserRequest(name, email, password);
         UserResponse response = new UserResponse(id, name, email, password);
 
@@ -196,7 +193,17 @@ class UserControllerImplTest {
         verify(mapper, times(1)).toResponse(User.builder().build());
     }
 
+    @DisplayName("Test delete endpoint with success")
     @Test
-    void delete() {
+    void testDeleteWithSuccess() {
+        when(service.delete(anyString())).thenReturn(Mono.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(response);
+
+        webTestClient.delete().uri(resourcePath)
+                .exchange()
+                .expectStatus().isOk();
+
+        verify(service, times(1)).delete(anyString());
+        verify(mapper, times(1)).toResponse(User.builder().build());
     }
 }
