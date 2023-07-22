@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -147,8 +148,27 @@ class UserControllerImplTest {
         verify(service, times(1)).findById(anyString());
     }
 
+    @DisplayName("Test find all endpoint with success")
     @Test
-    void findAll() {
+    void testFindAllWithSuccess() {
+        UserResponse response = new UserResponse(id, name, email, password);
+
+        when(service.findAll()).thenReturn(Flux.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(response);
+
+        webTestClient.get().uri(baseUri)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.[0].id").isEqualTo(id)
+                .jsonPath("$.[0].name").isEqualTo(name)
+                .jsonPath("$.[0].email").isEqualTo(email)
+                .jsonPath("$.[0].password").isEqualTo(password);
+
+        verify(service, times(1)).findAll();
+        verify(mapper, times(1)).toResponse(any(User.class));
+
     }
 
     @Test
