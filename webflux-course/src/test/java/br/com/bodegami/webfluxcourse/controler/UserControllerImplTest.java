@@ -5,16 +5,16 @@ import br.com.bodegami.webfluxcourse.mapper.UserMapper;
 import br.com.bodegami.webfluxcourse.model.request.UserRequest;
 import br.com.bodegami.webfluxcourse.service.UserService;
 import com.mongodb.reactivestreams.client.MongoClient;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -42,21 +42,30 @@ class UserControllerImplTest {
     @MockBean
     private MongoClient mongoClient;
 
-    private static final String ID = "987654321";
-    private static final String NAME = "renato";
-    private static final String EMAIL = "renato@email.com";
-    private static final String PASSWORD = "123";
-    private static final String BASE_URI = "/users";
+    private String id;
+    private String name;
+    private String email;
+    private String password;
+    private String baseUri;
+
+    @BeforeEach
+    void setup() {
+        id = "987654321";
+        name = "renato";
+        email = "renato@email.com";
+        password = "123";
+        baseUri = "/users";
+    }
 
 
     @DisplayName("Test endpoint save with success")
     @Test
     void testSaveWithSuccess() {
-        UserRequest request = new UserRequest(NAME, EMAIL, PASSWORD);
+        UserRequest request = new UserRequest(name, email, password);
 
         when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
 
-        webTestClient.post().uri(BASE_URI)
+        webTestClient.post().uri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(request))
                 .exchange()
@@ -65,6 +74,29 @@ class UserControllerImplTest {
                 .value(Objects::nonNull)
                 .consumeWith(System.out::println);
         verify(service, times(1)).save(any(UserRequest.class));
+    }
+
+    @DisplayName("Test endpoint save with bad request")
+    @Test
+    void testSaveWithBadRequest() {
+        name = "   renato    ";
+        UserRequest request = new UserRequest(name, email, password);
+
+        when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
+
+        webTestClient.post().uri(baseUri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(request))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.path").isEqualTo(baseUri)
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.error").isEqualTo("Validation error")
+                .jsonPath("$.message").isEqualTo("Error on validation attributes")
+                .jsonPath("$.errors[0].fieldName").isEqualTo("name")
+                .jsonPath("$.errors[0].message").isEqualTo("field cannot have blank spaces");
+        verify(service, times(0)).save(any(UserRequest.class));
     }
 
     @Test
